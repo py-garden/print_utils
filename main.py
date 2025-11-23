@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class TextColor(Enum):
     # Standard colors
     BLACK = 30
@@ -42,6 +43,7 @@ class TextColor(Enum):
     BG_BRIGHT_CYAN = 106
     BG_BRIGHT_WHITE = 107
 
+
 def colored_print(text: str, color: TextColor):
     """Print text in the specified color using ANSI escape codes."""
     print(f"\033[{color.value}m{text}\033[0m")
@@ -50,50 +52,41 @@ def colored_print(text: str, color: TextColor):
 class BoxPrinter:
     def __init__(self, indent_char: str = "    "):
         """
-        Initializes the BoxPrinter with no active box and an empty data queue.
-        
-        :param indent_char: Character(s) to use for indentation. Defaults to four spaces.
+        Initializes the BoxPrinter with no active box.
         """
         self.current_title = None
-        self.contents = []
         self.indent_char = indent_char
 
     def start_box(self, title: str):
         """
-        Starts a new box with the given title. Clears any previous box data.
-        
-        :param title: Title of the new box
+        Starts a new box and immediately prints the header.
         """
+        if self.current_title is not None:
+            raise ValueError("A box is already active. Call end_box() first.")
+
         self.current_title = title
-        self.contents = []
 
-    def queue_print(self, content: str, indent: int = 0):
-        """
-        Adds content to the current box with optional indentation.
-        
-        :param content: The content to queue for printing
-        :param indent: The level of indentation (number of indent_char repetitions)
-        """
-        if self.current_title is None:
-            raise ValueError("No active box. Use start_box() to begin a new box.")
-        indented_content = f"{self.indent_char * indent}{content}"
-        self.contents.append(indented_content)
-
-    def print_box(self):
-        """
-        Prints the contents of the current box with the title and formatting.
-        """
-        if self.current_title is None:
-            raise ValueError("No active box. Use start_box() to begin a new box.")
-        
-        # Print box title
         print()
         print("=" * 10 + f" {self.current_title} " + "=" * 10)
-        
-        # Print box contents
-        for line in self.contents:
-            print("|| " + line)
-        
-        # Print box footer
+
+    def print_line(self, content: str, indent: int = 0):
+        """
+        Immediately prints a line inside the current box.
+        """
+        if self.current_title is None:
+            raise ValueError("No active box. Call start_box() first.")
+
+        indented = f"{self.indent_char * indent}{content}"
+        print("|| " + indented)
+
+    def end_box(self):
+        """
+        Prints the footer and ends the current box.
+        """
+        if self.current_title is None:
+            raise ValueError("No active box to end.")
+
         print("=" * (20 + len(self.current_title)))
         print()
+
+        self.current_title = None
